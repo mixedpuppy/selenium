@@ -165,6 +165,23 @@ wdSession.prototype.setId = function(id) {
  *     window.
  */
 wdSession.prototype.getBrowser = function() {
+  try {
+    // if there is a set frame, try to get its window
+    if (this.frame_) {
+      var frame = this.frame_.get()
+      if (frame) {
+        var browser = frame.contentWindow.QueryInterface(Components.utils.nsIInterfaceRequestor)
+                                           .getInterface(Components.utils.nsIWebNavigation)
+                                           .QueryInterface(Components.utils.nsIDocShell)
+                                           .chromeEventHandler;
+        if (browser)
+          return browser;
+      }
+    }
+  } catch (ex) {
+    fxdriver.logging.error(ex);
+    // ignore exception and try other way
+  }
   return this.chromeWindow_.getBrowser();
 };
 
