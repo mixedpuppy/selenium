@@ -581,8 +581,21 @@ FirefoxDriver.prototype.switchToFrame = function(respond, parameters) {
     fxdriver.logging.info('Switching to default content (topmost frame)');
     newWindow = respond.session.getBrowser().contentWindow;
   } else if (goog.isString(parameters.id)) {
-    fxdriver.logging.info('Switching to frame with name or ID: ' + parameters.id);
-    newWindow = bot.frame.findFrameByNameOrId(parameters.id, currentWindow);
+    if (parameters.id.substr(0,2) == "//") {
+      var query = parameters.id.substr(2);
+      var doc = respond.session.getChromeWindow().document;
+      var element = doc.queryselector(query);
+
+      if (!/^i?frame|browser$/i.test(element.tagName)) {
+        throw new WebDriverError(bot.ErrorCode.NO_SUCH_FRAME,
+            'Element is not a frame element: ' + element.tagName);
+      }
+  
+      newWindow = element.contentWindow;
+    } else {
+      fxdriver.logging.info('Switching to frame with name or ID: ' + parameters.id);
+      newWindow = bot.frame.findFrameByNameOrId(parameters.id, currentWindow);
+    }
   } else if (goog.isNumber(parameters.id)) {
     fxdriver.logging.info('Switching to frame by index: ' + parameters.id);
     newWindow = bot.frame.findFrameByIndex(parameters.id, currentWindow);
