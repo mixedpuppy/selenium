@@ -67,6 +67,7 @@ function DoNothing(browser, onComplete, opt_window) {
   this.onComplete = onComplete;
   this.win = opt_window;
   this.active = true;
+  this.handler = this;
 }
 DoNothing.prototype.onLocationChange = function() { return 0; };
 DoNothing.prototype.onProgressChange = function() { return 0; };
@@ -94,14 +95,14 @@ function PatientListener(browser, onComplete, opt_window) {
 PatientListener.prototype = new DoNothing();
 
 
-PatientListener.prototype.onStateChange = function(webProgress, request, flags) {
+PatientListener.prototype.onStateChange = function(webProgress, request, flags, status) {
   if (!this.active) {
     return 0;
   }
 
   if (flags & STATE_STOP) {
-    fxdriver.logging.info('request status is ' + request.status);
-    if (request.URI) {
+    fxdriver.logging.info('request status is ' + status);
+    if (request instanceof Components.interfaces.nsIChannel && request.QueryInterface(Components.interfaces.nsIChannel).URI) {
       this.active = false;
 
       // On versions of firefox prior to 4 removing a listener may cause
@@ -178,7 +179,12 @@ WebLoadingListener = function(browser, toCall, timeout, opt_window) {
   var func = function(timedOut) { loadingListenerTimer.cancel(); toCall(timedOut); };
 
   this.handler = buildHandler(browser, func, opt_window);
-  browser.addProgressListener(this.handler);
+  // this works with browser or iframe
+  browser.docShell.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                   .getInterface(Components.interfaces.nsIWebProgress)
+                                   .addProgressListener(this.handler,
+                                                        Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+
   var handler = this.handler;
 
   if (timeout == -1) {
@@ -186,12 +192,19 @@ WebLoadingListener = function(browser, toCall, timeout, opt_window) {
   }
 
   loadingListenerTimer.setTimeout(function() {
+      WebLoadingListener.removeListener(browser, this);
       func(true);
-      WebLoadingListener.removeListener(browser, handler);
   }, timeout);
 };
 
 
 WebLoadingListener.removeListener = function(browser, listener) {
-  browser.removeProgressListener(listener.handler);
+  // this works with browser or iframe
+  try {
+    browser.docShell.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                   .getInterface(Components.interfaces.nsIWebProgress)
+                                   .removeProgressListener(listener.handler);
+  } catch(e) {
+    fxdriver.logging.warning("WebLoadingListener.removeListener: " + e);
+  }
 };
