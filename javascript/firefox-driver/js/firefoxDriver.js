@@ -645,7 +645,7 @@ FirefoxDriver.prototype.switchToFrame = function(respond, parameters) {
     if (parameters.id.substr(0,2) == "//") {
       var query = parameters.id.substr(2);
       var doc = respond.session.getChromeWindow().document;
-      var element = doc.queryselector(query);
+      var element = doc.querySelector(query);
 
       if (!/^i?frame|browser$/i.test(element.tagName)) {
         throw new WebDriverError(bot.ErrorCode.NO_SUCH_FRAME,
