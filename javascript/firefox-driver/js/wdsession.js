@@ -167,16 +167,20 @@ wdSession.prototype.setId = function(id) {
 wdSession.prototype.getBrowser = function() {
   try {
     // if there is a set frame, try to get its window
+    var contentWindow;
     if (this.frame_) {
-      var frame = this.frame_.get()
-      if (frame) {
-        var browser = frame.contentWindow.QueryInterface(Components.utils.nsIInterfaceRequestor)
-                                           .getInterface(Components.utils.nsIWebNavigation)
-                                           .QueryInterface(Components.utils.nsIDocShell)
-                                           .chromeEventHandler;
-        if (browser)
-          return browser;
-      }
+      contentWindow = this.frame_.get().contentWindow;
+    } else if (this.window_) {
+      contentWindow = this.window_.get();
+    }
+
+    if (contentWindow) {
+      var browser = contentWindow.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                         .getInterface(Components.interfaces.nsIWebNavigation)
+                                         .QueryInterface(Components.interfaces.nsIDocShell)
+                                         .chromeEventHandler;
+      if (browser)
+        return browser;
     }
   } catch (ex) {
     fxdriver.logging.error(ex);
