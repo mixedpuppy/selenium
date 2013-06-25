@@ -648,7 +648,7 @@ FirefoxDriver.prototype.switchToFrame = function(respond, parameters) {
       var element = doc.querySelector(query);
 
       if (element.localName == "chatbox")
-        element = element.iframe;
+        element = element.content;
 
       if (!/^i?frame|browser$/i.test(element.localName)) {
         throw new WebDriverError(bot.ErrorCode.NO_SUCH_FRAME,
