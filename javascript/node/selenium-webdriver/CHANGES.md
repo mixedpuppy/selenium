@@ -1,4 +1,19 @@
-## v2.33.0-dev
+## v2.34.0-dev
+
+* Added the `selenium-webdriver/testing/asserts` module. This module
+    simplifies writing assertions against promised values (see
+    example in module documentation).
+* Added the `webdriver.Capabilities` class.
+* Removed the deprecated `webdriver.Deferred#resolve` and
+    `webdriver.promise.resolved` functions.
+* Added native support for the ChromeDriver. Use `selenium-webdriver/chrome`.
+    When using the `Builder`, requesting chrome without specifying a remote
+    server URL will default to the native ChromeDriver implementation.
+* Changed signature of `SeleniumServer` to `SeleniumServer(jar, options)`.
+* Removed the ability to connect to an existing session from the Builder. This
+    feature is intended for use with the browser-based client.
+
+## v2.33.0
 
 * Added support for WebDriver's logging API
 * FIXED: 5511: Added webdriver.manage().timeouts().pageLoadTimeout(ms)

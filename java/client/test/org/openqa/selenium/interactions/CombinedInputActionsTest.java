@@ -31,6 +31,8 @@ import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeFalse;
 import static org.openqa.selenium.TestWaiter.waitFor;
 import static org.openqa.selenium.WaitingConditions.elementToExist;
 import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
@@ -50,7 +52,7 @@ import static org.openqa.selenium.testing.TestUtilities.isNativeEventsEnabled;
 /**
  * Tests combined input actions.
  */
-@Ignore(value = {ANDROID, CHROME, SAFARI},
+@Ignore(value = {ANDROID, SAFARI},
     reason = "Safari: not implemented (issue 4136)",
     issues = {4136})
 public class CombinedInputActionsTest extends JUnit4TestBase {
@@ -58,12 +60,11 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
   // TODO: Check if this could work in any browser without native events.
   @JavascriptEnabled
   @Test
+  @Ignore(CHROME)
   public void testClickingOnFormElements() {
-    if (!isNativeEventsEnabled(driver) || (!getEffectivePlatform().is(Platform.LINUX))) {
-      System.out.println("Skipping testClickingOnFormElements: Only works with native events" +
-          " on Linux.");
-      return;
-    }
+    assumeTrue("Only works with native events on Linux",
+               isNativeEventsEnabled(driver) && getEffectivePlatform().is(Platform.LINUX));
+
     driver.get(pages.formSelectionPage);
 
     List<WebElement> options = driver.findElements(By.tagName("option"));
@@ -90,11 +91,8 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
   @Ignore({ANDROID, IE, REMOTE, IPHONE, OPERA})
   @Test
   public void testSelectingMultipleItems() {
-    if (!isNativeEventsEnabled(driver) || (!getEffectivePlatform().is(Platform.LINUX))) {
-      System.out.println("Skipping testClickingOnFormElements: Only works with native events" +
-          " on Linux.");
-      return;
-    }
+    assumeFalse("Does not works with native events on Windows",
+                isNativeEventsEnabled(driver) && getEffectivePlatform().is(Platform.WINDOWS));
 
     driver.get(pages.selectableItemsPage);
 
@@ -181,17 +179,10 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
   @Ignore({HTMLUNIT, OPERA, OPERA_MOBILE})
   @Test
   public void testChordControlCutAndPaste() {
-    // FIXME: macs don't have CONRTROL key
-    if (getEffectivePlatform().is(Platform.MAC)) {
-      return;
-    }
-
-    if (getEffectivePlatform().is(Platform.WINDOWS) &&
-        (isInternetExplorer(driver) || isFirefox(driver))) {
-      System.out.println("Skipping testChordControlCutAndPaste on Windows: native events library" +
-          " does not support storing modifiers state yet.");
-      return;
-    }
+    assumeFalse("FIXME: macs don't have CONRTROL key", getEffectivePlatform().is(Platform.MAC));
+    assumeFalse("Windows: native events library  does not support storing modifiers state yet",
+                isNativeEventsEnabled(driver) && getEffectivePlatform().is(Platform.WINDOWS) &&
+                (isInternetExplorer(driver) || isFirefox(driver)));
 
     driver.get(pages.javascriptPage);
 
@@ -227,11 +218,8 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
   @Ignore({HTMLUNIT, OPERA, IE})
   @Test
   public void testCombiningShiftAndClickResultsInANewWindow() {
-    if (!isNativeEventsEnabled(driver) || (!getEffectivePlatform().is(Platform.LINUX))) {
-      System.out.println("Skipping testCombiningShiftAndClickResultsInANewWindow: " +
-          "Only works with native events on Linux.");
-      return;
-    }
+    assumeFalse("Does not works with native events on Windows",
+                isNativeEventsEnabled(driver) && getEffectivePlatform().is(Platform.WINDOWS));
 
     driver.get(pages.linkedImage);
     WebElement link = driver.findElement(By.id("link"));
@@ -253,11 +241,8 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
   @Ignore({HTMLUNIT, OPERA, OPERA_MOBILE, IPHONE, IE})
   @Test
   public void testHoldingDownShiftKeyWhileClicking() {
-    if (!isNativeEventsEnabled(driver) || (!getEffectivePlatform().is(Platform.LINUX))) {
-      System.out.println("Skipping testHoldingDownShiftKeyWhileClicking: " +
-          "Only works with native events on Linux.");
-      return;
-    }
+    assumeFalse("Does not works with native events on Windows",
+               isNativeEventsEnabled(driver) && getEffectivePlatform().is(Platform.WINDOWS));
 
     driver.get(pages.clickEventPage);
 

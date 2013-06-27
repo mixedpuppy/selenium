@@ -34,12 +34,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 import static org.openqa.selenium.TestWaiter.waitFor;
 import static org.openqa.selenium.WaitingConditions.elementTextToContain;
 import static org.openqa.selenium.WaitingConditions.elementTextToEqual;
 import static org.openqa.selenium.WaitingConditions.elementToExist;
 import static org.openqa.selenium.WaitingConditions.elementValueToEqual;
-import static org.openqa.selenium.testing.Ignore.Driver.ALL;
 import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
 import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
 import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
@@ -52,7 +52,7 @@ import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
 
 public class CorrectEventFiringTest extends JUnit4TestBase {
 
-  @Ignore(value = {CHROME, FIREFOX, ANDROID}, reason = "Webkit bug 22261. Firefox 3.6 wants focus")
+  @Ignore(value = {CHROME, ANDROID}, reason = "Webkit bug 22261")
   @JavascriptEnabled
   @Test
   public void testShouldFireFocusEventWhenClicking() {
@@ -109,7 +109,6 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
   // TODO: this is a bad test: mousemove should not fire in a perfect click (e.g. mouse did not move
   // while doing down, up, click
   @JavascriptEnabled
-  @Ignore({CHROME, FIREFOX})
   @Test
   public void testShouldFireMouseMoveEventWhenClicking() {
     driver.get(pages.javascriptPage);
@@ -131,8 +130,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
     }
   }
 
-  @Ignore(value = {CHROME, FIREFOX, ANDROID},
-      reason = "Webkit bug 22261. Firefox 3.6 wants focus")
+  @Ignore(value = {CHROME, ANDROID}, reason = "Webkit bug 22261")
   @JavascriptEnabled
   @Test
   public void testShouldFireEventsInTheRightOrder() {
@@ -293,10 +291,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
   @Ignore(value = {IPHONE, ANDROID}, reason = "iPhone: sendKeys implementation is incorrect")
   @Test
   public void testSendingKeysToAnotherElementShouldCauseTheBlurEventToFire() {
-    if (browserNeedsFocusOnThisOs(driver)) {
-      System.out.println("Skipping this test because browser demands focus");
-      return;
-    }
+    assumeFalse(browserNeedsFocusOnThisOs(driver));
 
     driver.get(pages.javascriptPage);
     WebElement element = driver.findElement(By.id("theworks"));
@@ -310,10 +305,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
   @Ignore(value = {IPHONE, ANDROID}, reason = "iPhone: sendKeys implementation is incorrect")
   @Test
   public void testSendingKeysToAnElementShouldCauseTheFocusEventToFire() {
-    if (browserNeedsFocusOnThisOs(driver)) {
-      System.out.println("Skipping this test because browser demands focus");
-      return;
-    }
+    assumeFalse(browserNeedsFocusOnThisOs(driver));
 
     driver.get(pages.javascriptPage);
     WebElement element = driver.findElement(By.id("theworks"));
@@ -326,10 +318,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
       reason = "iPhone: input elements are blurred when the keyboard is closed")
   @Test
   public void testSendingKeysToAFocusedElementShouldNotBlurThatElement() {
-    if (browserNeedsFocusOnThisOs(driver)) {
-      System.out.println("Skipping this test because browser demands focus");
-      return;
-    }
+    assumeFalse(browserNeedsFocusOnThisOs(driver));
 
     driver.get(pages.javascriptPage);
     WebElement element = driver.findElement(By.id("theworks"));
@@ -389,7 +378,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @Ignore(value = {CHROME, IPHONE, ANDROID, OPERA, SAFARI, OPERA_MOBILE},
+  @Ignore(value = {IPHONE, ANDROID, OPERA, SAFARI, OPERA_MOBILE},
       reason = "Does not yet support file uploads", issues = { 4220 })
   @Test
   public void testUploadingFileShouldFireOnChangeEvent() throws IOException {
@@ -416,10 +405,9 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
   @Ignore(value = {ANDROID}, reason = "Not implemented")
   @Test
   public void testShouldReportTheXAndYCoordinatesWhenClicking() {
-    if (SauceDriver.shouldUseSauce() && TestUtilities.isInternetExplorer(driver)) {
-      System.err.println("Skipping test which fails in IE on Sauce");
-      return;
-    }
+    assumeFalse("Skipping test which fails in IE on Sauce",
+                SauceDriver.shouldUseSauce() && TestUtilities.isInternetExplorer(driver));
+
     driver.get(pages.clickEventPage);
 
     WebElement element = driver.findElement(By.id("eventish"));
@@ -433,7 +421,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
   }
   
   @JavascriptEnabled
-  @Ignore(ALL)
+  @Ignore(value = {ANDROID, IPHONE}, reason = "Not tested")
   @Test
   public void testClickEventsShouldBubble() {
     driver.get(pages.clicksPage);
@@ -463,7 +451,7 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
 
   private boolean browserNeedsFocusOnThisOs(WebDriver driver) {
     // No browser yet demands focus on windows
-    if (Platform.getCurrent().is(Platform.WINDOWS))
+    if (TestUtilities.getEffectivePlatform().is(Platform.WINDOWS))
       return false;
 
     if (Boolean.getBoolean("webdriver.focus.override")) {

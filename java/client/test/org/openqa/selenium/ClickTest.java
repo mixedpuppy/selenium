@@ -31,11 +31,11 @@ import org.openqa.selenium.testing.TestUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 import static org.openqa.selenium.TestWaiter.waitFor;
 import static org.openqa.selenium.WaitingConditions.newWindowIsOpened;
 import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
 import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
 import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
 import static org.openqa.selenium.testing.Ignore.Driver.IE;
 import static org.openqa.selenium.testing.Ignore.Driver.IPHONE;
@@ -62,8 +62,7 @@ public class ClickTest extends JUnit4TestBase {
     waitFor(WaitingConditions.pageTitleToBe(driver, "XHTML Test Page"));
   }
 
-  @Ignore(value = {CHROME, OPERA},
-          reason = "Not tested on these browsers.")
+  @Ignore(value = {OPERA}, reason = "Not tested.")
   @Test
   public void testCanClickOnALinkThatOverflowsAndFollowIt() {
     driver.findElement(By.id("overflowLink")).click();
@@ -300,9 +299,11 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(value = {CHROME, FIREFOX, HTMLUNIT, OPERA, OPERA_MOBILE, ANDROID, IPHONE}, reason
-      = "Chrome, Firefox: failed, others: not tested")
+  @Ignore(value = {CHROME, HTMLUNIT, OPERA, OPERA_MOBILE, ANDROID, IPHONE}, reason
+      = "Chrome: failed, Firefox: failed with native events, others: not tested")
   public void testShouldBeAbleToClickOnAnElementInFrameGreaterThanTwoViewports() {
+    assumeFalse(TestUtilities.isFirefox(driver) && TestUtilities.isNativeEventsEnabled(driver));
+
     String url = appServer.whereIs("click_too_big_in_frame.html");
     driver.get(url);
 
