@@ -586,12 +586,12 @@ FirefoxDriver.prototype.switchToFrame = function(respond, parameters) {
       var doc = respond.session.getChromeWindow().document;
       var element = doc.querySelector(query);
 
-      if (element.localName == "chatbox")
+      if (element && element.localName == "chatbox")
         element = element.content;
 
-      if (!/^i?frame|browser$/i.test(element.localName)) {
+      if (!element || !/^i?frame|browser$/i.test(element.localName)) {
         throw new WebDriverError(bot.ErrorCode.NO_SUCH_FRAME,
-            'Element is not a frame element: ' + element.tagName);
+            'Element is not a frame element');
       }
   
       newWindow = element.contentWindow;
