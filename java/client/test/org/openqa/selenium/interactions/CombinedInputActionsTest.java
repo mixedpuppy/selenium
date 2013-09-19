@@ -18,6 +18,7 @@ package org.openqa.selenium.interactions;
 
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WaitingConditions;
@@ -25,21 +26,26 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
+import org.openqa.selenium.testing.TestUtilities;
 
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.openqa.selenium.TestWaiter.waitFor;
 import static org.openqa.selenium.WaitingConditions.elementToExist;
+import static org.openqa.selenium.WaitingConditions.elementValueToEqual;
+import static org.openqa.selenium.WaitingConditions.pageTitleToBe;
 import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
 import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
 import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
 import static org.openqa.selenium.testing.Ignore.Driver.IE;
 import static org.openqa.selenium.testing.Ignore.Driver.IPHONE;
+import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA_MOBILE;
 import static org.openqa.selenium.testing.Ignore.Driver.REMOTE;
@@ -52,7 +58,7 @@ import static org.openqa.selenium.testing.TestUtilities.isNativeEventsEnabled;
 /**
  * Tests combined input actions.
  */
-@Ignore(value = {ANDROID, SAFARI},
+@Ignore(value = {ANDROID, SAFARI, MARIONETTE},
     reason = "Safari: not implemented (issue 4136)",
     issues = {4136})
 public class CombinedInputActionsTest extends JUnit4TestBase {
@@ -130,7 +136,7 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
         .click(link)
         .perform();
 
-    waitFor(WaitingConditions.pageTitleToBe(driver, "XHTML Test Page"));
+    waitFor(pageTitleToBe(driver, "XHTML Test Page"));
   }
 
   @Ignore({IPHONE})
@@ -154,7 +160,7 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
         .click()
         .perform();
 
-    waitFor(WaitingConditions.pageTitleToBe(driver, "XHTML Test Page"));
+    waitFor(pageTitleToBe(driver, "XHTML Test Page"));
   }
 
   /**
@@ -173,7 +179,7 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
         .click()
         .perform();
 
-    waitFor(WaitingConditions.pageTitleToBe(driver, "We Arrive Here"));
+    waitFor(pageTitleToBe(driver, "We Arrive Here"));
   }
 
   @Ignore({HTMLUNIT, OPERA, OPERA_MOBILE})
@@ -183,6 +189,10 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
     assumeFalse("Windows: native events library  does not support storing modifiers state yet",
                 isNativeEventsEnabled(driver) && getEffectivePlatform().is(Platform.WINDOWS) &&
                 (isInternetExplorer(driver) || isFirefox(driver)));
+    assumeFalse("FIXME: Fails in Firefox on Linux with native events",
+                isFirefox(driver) &&
+                isNativeEventsEnabled(driver) &&
+                getEffectivePlatform().is(Platform.LINUX));
 
     driver.get(pages.javascriptPage);
 
@@ -192,7 +202,7 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
         .sendKeys(element, "abc def")
         .perform();
 
-    assertEquals("abc def", element.getAttribute("value"));
+    waitFor(elementValueToEqual(element, "abc def"));
 
     //TODO: Figure out why calling sendKey(Key.CONTROL + "a") and then
     //sendKeys("x") does not work on Linux.
@@ -203,7 +213,7 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
     // Release keys before next step.
     new Actions(driver).sendKeys(Keys.NULL).perform();
 
-    assertEquals("", element.getAttribute("value"));
+    waitFor(elementValueToEqual(element, ""));
 
     new Actions(driver)
         .sendKeys(Keys.CONTROL + "v")
@@ -212,7 +222,7 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
 
     new Actions(driver).sendKeys(Keys.NULL).perform();
 
-    assertEquals("abc defabc def", element.getAttribute("value"));
+    waitFor(elementValueToEqual(element, "abc defabc def"));
   }
 
   @Ignore({HTMLUNIT, OPERA, IE})
@@ -253,4 +263,58 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
     WebElement shiftInfo = waitFor(elementToExist(driver, "shiftKey"));
     assertThat(shiftInfo.getText(), equalTo("true"));
   }
+
+  @JavascriptEnabled
+  @Test
+  @Ignore(value = {OPERA, OPERA_MOBILE, SAFARI, MARIONETTE}, issues = {4136})
+  public void canClickOnASuckerFishStyleMenu() throws InterruptedException {
+    driver.get(pages.javascriptPage);
+
+    // This test passes on IE. When running in Firefox on Windows, the test
+    // will fail if the mouse cursor is not in the window. Solution: Maximize.
+    if ((TestUtilities.getEffectivePlatform().is(Platform.WINDOWS)) &&
+        TestUtilities.isFirefox(driver) && TestUtilities.isNativeEventsEnabled(driver)) {
+      driver.manage().window().maximize();
+    }
+
+    // Move to a different element to make sure the mouse is not over the
+    // element with id 'item1' (from a previous test).
+    new Actions(driver).moveToElement(driver.findElement(By.id("dynamo"))).build().perform();
+
+    WebElement element = driver.findElement(By.id("menu1"));
+
+    final WebElement item = driver.findElement(By.id("item1"));
+    assertEquals("", item.getText());
+
+    ((JavascriptExecutor) driver).executeScript("arguments[0].style.background = 'green'", element);
+    new Actions(driver).moveToElement(element).build().perform();
+
+    // Intentionally wait to make sure hover persists.
+    Thread.sleep(2000);
+
+    item.click();
+
+    WebElement result = driver.findElement(By.id("result"));
+    waitFor(WaitingConditions.elementTextToContain(result, "item 1"));
+  }
+
+  @JavascriptEnabled
+  @Test
+  @Ignore(value = {SAFARI, MARIONETTE}, issues = {4136})
+  public void testCanClickOnSuckerFishMenuItem() throws Exception {
+    driver.get(pages.javascriptPage);
+
+    WebElement element = driver.findElement(By.id("menu1"));
+
+    new Actions(driver).moveToElement(element).build().perform();
+
+    WebElement target = driver.findElement(By.id("item1"));
+
+    assertTrue(target.isDisplayed());
+    target.click();
+
+    String text = driver.findElement(By.id("result")).getText();
+    assertTrue(text.contains("item 1"));
+  }
+
 }

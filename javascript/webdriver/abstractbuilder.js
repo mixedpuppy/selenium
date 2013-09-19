@@ -27,11 +27,6 @@ goog.require('webdriver.process');
  *   <dd>Defines the remote WebDriver server that should be used for command
  *       command execution; may be overridden using
  *       {@code webdriver.AbstractBuilder.prototype.usingServer}.</dd>
- *   <dt>{@code webdriver.AbstractBuilder.SESSION_ID_ENV}</dt>
- *   <dd>Defines the ID of an existing WebDriver session that should be used
- *       for new clients. This is most often used for browser-based clients
- *       that wish to gain control of the current browser which is already under
- *       WebDriver's control.</dd>
  * </dl>
  * @constructor
  */
@@ -98,7 +93,8 @@ webdriver.AbstractBuilder.prototype.getServerUrl = function() {
 
 
 /**
- * Sets the desired capabilities when requesting a new session.
+ * Sets the desired capabilities when requesting a new session. This will
+ * overwrite any previously set desired capabilities.
  * @param {!(Object|webdriver.Capabilities)} capabilities The desired
  *     capabilities for a new session.
  * @return {!webdriver.AbstractBuilder} This Builder instance for chain calling.

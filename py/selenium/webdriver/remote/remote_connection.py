@@ -156,7 +156,9 @@ class RemoteConnection(object):
 
         self._url = remote_server_addr
         self._commands = {
+            Command.STATUS: ('GET', '/status'),
             Command.NEW_SESSION: ('POST', '/session'),
+            Command.GET_ALL_SESSIONS: ('GET', '/sessions'),
             Command.QUIT: ('DELETE', '/session/$sessionId'),
             Command.GET_CURRENT_WINDOW_HANDLE:
                 ('GET', '/session/$sessionId/window_handle'),
@@ -327,6 +329,10 @@ class RemoteConnection(object):
                 ('DELETE', '/session/$sessionId/session_storage'),
             Command.GET_SESSION_STORAGE_SIZE:
                 ('GET','/session/$sessionId/session_storage/size'),
+            Command.GET_LOG:
+                ('POST','/session/$sessionId/log'),
+            Command.GET_AVAILABLE_LOG_TYPES:
+                ('GET','/session/$sessionId/log/types'),
             }
 
     def execute(self, command, params):

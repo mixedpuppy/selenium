@@ -31,7 +31,7 @@ exports.Session = base.require('webdriver.Session');
 exports.WebDriver = base.require('webdriver.WebDriver');
 exports.WebElement = base.require('webdriver.WebElement');
 
-var submodules = {
+var closureModules = {
   Browser: base.require('webdriver.Browser'),
   Capability: base.require('webdriver.Capability'),
   CommandName: base.require('webdriver.CommandName'),
@@ -47,16 +47,14 @@ var submodules = {
   events: {
     EventEmitter: base.require('webdriver.EventEmitter')
   },
-  http: require('./http'),
   logging: base.exportPublicApi('webdriver.logging'),
   promise: base.exportPublicApi('webdriver.promise'),
   stacktrace: base.exportPublicApi('webdriver.stacktrace')
 };
 
 
-Object.keys(submodules).forEach(function(key) {
+Object.keys(closureModules).forEach(function(key) {
   exports.__defineGetter__(key, function() {
-    return submodules[key];
+    return closureModules[key];
   });
 });
-

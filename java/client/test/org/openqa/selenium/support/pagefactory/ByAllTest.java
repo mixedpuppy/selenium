@@ -16,7 +16,12 @@ limitations under the License.
 
 package org.openqa.selenium.support.pagefactory;
 
-import org.jmock.Expectations;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -26,16 +31,12 @@ import org.openqa.selenium.internal.FindsById;
 import org.openqa.selenium.internal.FindsByLinkText;
 import org.openqa.selenium.internal.FindsByName;
 import org.openqa.selenium.internal.FindsByXPath;
-import org.openqa.selenium.testing.MockTestBase;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+public class ByAllTest {
 
-public class ByAllTest extends MockTestBase {
   @Test
   public void findElementZeroBy() {
     final AllDriver driver = mock(AllDriver.class);
@@ -67,10 +68,7 @@ public class ByAllTest extends MockTestBase {
     elems12.add(elem1);
     elems12.add(elem2);
 
-    checking(new Expectations() {{
-      one(driver).findElementsByName("cheese");
-      will(returnValue(elems12));
-    }});
+    when(driver.findElementsByName("cheese")).thenReturn(elems12);
 
     ByAll by = new ByAll(By.name("cheese"));
     assertThat(by.findElement(driver), equalTo(elem1));
@@ -85,10 +83,7 @@ public class ByAllTest extends MockTestBase {
     elems12.add(elem1);
     elems12.add(elem2);
 
-    checking(new Expectations() {{
-      one(driver).findElementsByName("cheese");
-      will(returnValue(elems12));
-    }});
+    when(driver.findElementsByName("cheese")).thenReturn(elems12);
 
     ByAll by = new ByAll(By.name("cheese"));
     assertThat(by.findElements(driver), equalTo(elems12));
@@ -99,10 +94,7 @@ public class ByAllTest extends MockTestBase {
     final AllDriver driver = mock(AllDriver.class);
     final List<WebElement> elems = new ArrayList<WebElement>();
 
-    checking(new Expectations() {{
-      one(driver).findElementsByName("cheese");
-      will(returnValue(elems));
-    }});
+    when(driver.findElementsByName("cheese")).thenReturn(elems);
 
     ByAll by = new ByAll(By.name("cheese"));
     try {
@@ -118,10 +110,7 @@ public class ByAllTest extends MockTestBase {
     final AllDriver driver = mock(AllDriver.class);
     final List<WebElement> elems = new ArrayList<WebElement>();
 
-    checking(new Expectations() {{
-      one(driver).findElementsByName("cheese");
-      will(returnValue(elems));
-    }});
+    when(driver.findElementsByName("cheese")).thenReturn(elems);
 
     ByAll by = new ByAll(By.name("cheese"));
     assertThat(by.findElements(driver), equalTo(elems));
@@ -141,12 +130,8 @@ public class ByAllTest extends MockTestBase {
     elems34.add(elem3);
     elems34.add(elem4);
 
-    checking(new Expectations() {{
-      one(driver).findElementsByName("cheese");
-      will(returnValue(elems12));
-      one(driver).findElementsByName("photo");
-      will(returnValue(elems34));
-    }});
+    when(driver.findElementsByName("cheese")).thenReturn(elems12);
+    when(driver.findElementsByName("photo")).thenReturn(elems34);
 
     ByAll by = new ByAll(By.name("cheese"), By.name("photo"));
     assertThat(by.findElement(driver), equalTo(elem1));
@@ -169,12 +154,8 @@ public class ByAllTest extends MockTestBase {
     elems1234.addAll(elems12);
     elems1234.addAll(elems34);
 
-    checking(new Expectations() {{
-      one(driver).findElementsByName("cheese");
-      will(returnValue(elems12));
-      one(driver).findElementsByName("photo");
-      will(returnValue(elems34));
-    }});
+    when(driver.findElementsByName("cheese")).thenReturn(elems12);
+    when(driver.findElementsByName("photo")).thenReturn(elems34);
 
     ByAll by = new ByAll(By.name("cheese"), By.name("photo"));
     assertThat(by.findElements(driver), equalTo(elems1234));

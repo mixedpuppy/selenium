@@ -26,7 +26,9 @@ class Command(object):
 
     # Keep in sync with org.openqa.selenium.remote.DriverCommand
 
+    STATUS = "status"
     NEW_SESSION = "newSession"
+    GET_ALL_SESSIONS = "getAllSessions"
     DELETE_SESSION = "deleteSession"
     CLOSE = "close"
     QUIT = "quit"
@@ -88,6 +90,8 @@ class Command(object):
     SET_SCRIPT_TIMEOUT = "setScriptTimeout"
     SET_TIMEOUTS = "setTimeouts"
     MAXIMIZE_WINDOW = "windowMaximize"
+    GET_LOG = "getLog"
+    GET_AVAILABLE_LOG_TYPES = "getAvailableLogTypes"
 
     #Alerts
     DISMISS_ALERT = "dismissAlert"

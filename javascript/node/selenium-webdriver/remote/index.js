@@ -131,6 +131,14 @@ DriverService.prototype.address = function() {
 
 
 /**
+ * @return {boolean} Whether the underlying service process is running.
+ */
+DriverService.prototype.isRunning = function() {
+  return !!this.address_;
+};
+
+
+/**
  * Starts the server if it is not already running.
  * @param {number=} opt_timeoutMs How long to wait, in milliseconds, for the
  *     server to start accepting requests. Defaults to 30 seconds.
@@ -158,11 +166,14 @@ DriverService.prototype.start = function(opt_timeoutMs) {
         stdio: self.stdio_
       }).once('exit', onServerExit);
 
+      // This process should not wait on the spawned child, however, we do
+      // want to ensure the child is killed when this process exits.
+      self.process_.unref();
       process.once('exit', killServer);
 
       var serverUrl = url.format({
         protocol: 'http',
-        hostname: net.getAddress(),
+        hostname: net.getAddress() || net.getLoopbackAddress(),
         port: port,
         pathname: self.path_
       });
@@ -257,7 +268,7 @@ function SeleniumServer(jar, options) {
   var port = options.port || portprober.findFreePort();
   var args = promise.when(options.args || [], function(args) {
     return promise.when(port, function(port) {
-      return args.concat('-jar', jar, '-port', port);
+      return ['-jar', jar, '-port', port].concat(args);
     });
   });
 

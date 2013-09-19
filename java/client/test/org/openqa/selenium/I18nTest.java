@@ -19,6 +19,7 @@ package org.openqa.selenium;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
 import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
@@ -26,6 +27,7 @@ import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
 import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
 import static org.openqa.selenium.testing.Ignore.Driver.IE;
 import static org.openqa.selenium.testing.Ignore.Driver.IPHONE;
+import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA;
 
 import org.junit.Test;
@@ -33,6 +35,7 @@ import org.openqa.selenium.environment.GlobalTestEnvironment;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.TestUtilities;
+import org.openqa.selenium.testing.drivers.Browser;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,14 +60,14 @@ public class I18nTest extends JUnit4TestBase {
    */
   private static final String tokyo = "\u6771\u4EAC";
 
-  @Ignore({IPHONE})
+  @Ignore({IPHONE, MARIONETTE})
   @Test
   public void testCn() {
     driver.get(pages.chinesePage);
     driver.findElement(By.linkText(Messages.getString("I18nTest.link1"))).click();
   }
 
-  @Ignore(ANDROID)
+  @Ignore({ANDROID, MARIONETTE})
   @Test
   public void testEnteringHebrewTextFromLeftToRight() {
     driver.get(pages.chinesePage);
@@ -75,7 +78,7 @@ public class I18nTest extends JUnit4TestBase {
     assertEquals(shalom, input.getAttribute("value"));
   }
 
-  @Ignore(ANDROID)
+  @Ignore({ANDROID, MARIONETTE})
   @Test
   public void testEnteringHebrewTextFromRightToLeft() {
     driver.get(pages.chinesePage);
@@ -87,6 +90,38 @@ public class I18nTest extends JUnit4TestBase {
   }
 
   @Test
+  @Ignore(
+      value = {MARIONETTE, CHROME, OPERA},
+      reason = "MAIONETTE: not checked, "
+               + "CHROME: ChromeDriver only supports characters in the BMP"
+               + "OPERA: doesn't work - see issue 5069"
+  )
+  public void testEnteringSupplementaryCharacters() {
+    assumeFalse("IE: versions less thank 10 have issue 5069",
+                TestUtilities.isInternetExplorer(driver) &&
+                TestUtilities.getIEVersion(driver) < 10);
+    assumeFalse("FF: native events at linux broke it - see issue 5069",
+                TestUtilities.isFirefox(driver) &&
+                TestUtilities.isNativeEventsEnabled(driver) &&
+                TestUtilities.getEffectivePlatform().is(Platform.LINUX));
+    driver.get(pages.chinesePage);
+
+    String input = "";
+    input += new String(Character.toChars(0x20000));
+    input += new String(Character.toChars(0x2070E));
+    input += new String(Character.toChars(0x2000B));
+    input += new String(Character.toChars(0x2A190));
+    input += new String(Character.toChars(0x2A6B2));
+
+    WebElement el = driver.findElement(By.name("i18n"));
+    el.sendKeys(input);
+
+    assertEquals(input, el.getAttribute("value"));
+  }
+
+  @NeedsFreshDriver
+  @Test
+  @Ignore(MARIONETTE)
   public void testShouldBeAbleToReturnTheTextInAPage() {
     String url = GlobalTestEnvironment.get()
         .getAppServer()

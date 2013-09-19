@@ -71,9 +71,11 @@ import static org.openqa.selenium.TestWaiter.waitFor;
 import static org.openqa.selenium.WaitingConditions.elementValueToEqual;
 import static org.openqa.selenium.WaitingConditions.pageTitleToBe;
 import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
 
 @NeedsLocalEnvironment(reason = "Requires local browser launching environment")
 @RunWith(SeleniumTestRunner.class)
+@Ignore(MARIONETTE)
 public class FirefoxDriverTest extends JUnit4TestBase {
   @Test
   public void shouldContinueToWorkIfUnableToFindElementById() {
@@ -204,8 +206,24 @@ public class FirefoxDriverTest extends JUnit4TestBase {
     }
   }
 
-  @Ignore(FIREFOX)
   @Test
+  @Ignore(FIREFOX)
+  public void shouldBeAbleToStartFromProfileWithLogFileSetToStdout() throws IOException {
+    FirefoxProfile profile = new FirefoxProfile();
+
+    profile.setPreference("webdriver.log.file", "/dev/stdout");
+
+    try {
+      WebDriver secondDriver = newFirefoxDriver(profile);
+      secondDriver.quit();
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Expected driver to be created succesfully");
+    }
+  }
+
+  @Test
+  @Ignore(FIREFOX)
   public void shouldBeAbleToStartANamedProfile() {
     FirefoxProfile profile = new ProfilesIni().getProfile("default");
 
@@ -217,7 +235,7 @@ public class FirefoxDriverTest extends JUnit4TestBase {
     }
   }
 
-  @Test
+  @Test(timeout = 60000)
   public void shouldBeAbleToStartANewInstanceEvenWithVerboseLogging() {
     FirefoxBinary binary = new FirefoxBinary();
     binary.setEnvironmentProperty("NSPR_LOG_MODULES", "all:5");

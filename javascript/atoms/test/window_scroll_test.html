@@ -4,11 +4,15 @@
   <title>window_scroll_test</title>
   <script src="test_bootstrap.js" type="text/javascript"></script>
   <script type="text/javascript">
+    goog.require('bot.userAgent');
     goog.require('bot.window');
     goog.require('goog.math.Coordinate');
+    goog.require('goog.testing.AsyncTestCase');
     goog.require('goog.testing.jsunit');
   </script>
   <script type="text/javascript">
+    var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
+
     function verifyScroll(expectedScroll) {
       if (goog.userAgent.product.ANDROID) {
         // ANDROID always returns zero.
@@ -28,7 +32,17 @@
     function testSetScroll() {
       var pos = new goog.math.Coordinate(25, 50);
       bot.window.setScroll(pos);
-      verifyScroll(pos);
+
+      if (bot.userAgent.SAFARI_6) {
+        asyncTestCase.waitForAsync(
+          'Safari requires an async timeout for scroll effects to apply');
+        setTimeout(function() {
+          verifyScroll(pos);
+          asyncTestCase.continueTesting();
+        }, 100);
+      } else {
+        verifyScroll(pos);
+      }
     }
 
     function testSetScrollUsingGetScroll() {

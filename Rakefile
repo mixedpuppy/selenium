@@ -47,7 +47,7 @@ end
 verbose($DEBUG)
 
 def version
-  "2.33.0"
+  "2.35.0"
 end
 ide_version = "1.10.0"
 
@@ -280,14 +280,14 @@ task :dotnet => [ "//dotnet", "//dotnet:support", "//dotnet:core", "//dotnet:web
 # Generate a C++ Header file for mapping between magic numbers and #defines
 # in the C++ code.
 ie_generate_type_mapping(:name => "ie_result_type_cpp",
-                         :src => "cpp/IEDriver/result_types.txt",
+                         :src => "cpp/iedriver/result_types.txt",
                          :type => "cpp",
-                         :out => "cpp/IEDriver/IEReturnTypes.h")
+                         :out => "cpp/iedriver/IEReturnTypes.h")
 
 # Generate a Java class for mapping between magic numbers and Java static
 # class members describing them.
 ie_generate_type_mapping(:name => "ie_result_type_java",
-                         :src => "cpp/IEDriver/result_types.txt",
+                         :src => "cpp/iedriver/result_types.txt",
                          :type => "java",
                          :out => "java/client/src/org/openqa/selenium/ie/IeReturnTypes.java")
 
@@ -456,6 +456,42 @@ GeckoSDKs.new do |sdks|
   sdks.add 'third_party/gecko-21/win32',
            'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/21.0/sdk/xulrunner-21.0.en-US.win32.sdk.zip',
            '246304f40c6b970b7a0c53305452630d'
+
+  sdks.add 'third_party/gecko-22/linux',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/22.0/sdk/xulrunner-22.0.en-US.linux-i686.sdk.tar.bz2',
+           '39fde24e395bf49d2e74d31b60c7e514'
+
+  sdks.add 'third_party/gecko-22/linux64',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/22.0/sdk/xulrunner-22.0.en-US.linux-x86_64.sdk.tar.bz2',
+           'a8d41f23fad4fa6a2d534b10daf9ab97'
+
+  sdks.add 'third_party/gecko-22/win32',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/22.0/sdk/xulrunner-22.0.en-US.win32.sdk.zip',
+           '2f9cd784be008aa2b18231a365d6b59a'
+
+  sdks.add 'third_party/gecko-23/linux',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/23.0/sdk/xulrunner-23.0.en-US.linux-i686.sdk.tar.bz2',
+           '19cf2596c01fe981f72a5726104e4f06'
+
+  sdks.add 'third_party/gecko-23/linux64',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/23.0/sdk/xulrunner-23.0.en-US.linux-x86_64.sdk.tar.bz2',
+           '17dec0f03d6c3c793a6d532dabfd0124'
+
+  sdks.add 'third_party/gecko-23/win32',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/23.0/sdk/xulrunner-23.0.en-US.win32.sdk.zip',
+           'f5e5945ee9a541fca65f3f9355160104'
+
+  sdks.add 'third_party/gecko-24/linux',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/24.0/sdk/xulrunner-24.0.en-US.linux-i686.sdk.tar.bz2',
+           '669ef73966d0401f77c0a429f194535c'
+
+  sdks.add 'third_party/gecko-24/linux64',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/24.0/sdk/xulrunner-24.0.en-US.linux-x86_64.sdk.tar.bz2',
+           '5d58e46da74c49cb50cd45edbcb86ccd'
+
+  sdks.add 'third_party/gecko-24/win32',
+           'http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/24.0/sdk/xulrunner-24.0.en-US.win32.sdk.zip',
+           '29d8fcf397038930a4220b7d60bb3cbf'
 end
 
 task :'selenium-server_zip' do
@@ -525,6 +561,8 @@ task :py_prep_for_install_release => ["//javascript/firefox-driver:webdriver", :
     end
 end
 
+task :py_docs => "//py:docs"
+
 task :py_install => :py_prep_for_install_release do
     sh "python setup.py install"
 end
@@ -569,10 +607,10 @@ file "iphone/src/objc/atoms.h" => ["//iphone:atoms"] do |task|
 end
 task :iphone_atoms => ["iphone/src/objc/atoms.h"]
 
-file "cpp/IEDriver/sizzle.h" => [ "//third_party/js/sizzle:sizzle:header" ] do
-  cp "build/third_party/js/sizzle/sizzle.h", "cpp/IEDriver/sizzle.h"
+file "cpp/iedriver/sizzle.h" => [ "//third_party/js/sizzle:sizzle:header" ] do
+  cp "build/third_party/js/sizzle/sizzle.h", "cpp/iedriver/sizzle.h"
 end
-task :sizzle_header => [ "cpp/IEDriver/sizzle.h" ]
+task :sizzle_header => [ "cpp/iedriver/sizzle.h" ]
 
 file "build/javascript/deps.js" => FileList[
     "third_party/closure/goog/**/*.js",
@@ -612,6 +650,7 @@ desc "Generate a single file with WebDriverJS' public API"
 task :webdriverjs => [ "//javascript/webdriver:webdriver" ]
 
 task :release => [
+    :clean,
     '//java/server/src/org/openqa/selenium/server:server:zip',
     '//java/server/src/org/openqa/grid/selenium:selenium:zip',
     '//java/client/src/org/openqa/selenium:client-combined:zip',
@@ -713,10 +752,15 @@ namespace :safari do
       "//javascript/webdriver:test_safari:run"
   ]
 
+  desc "Run Java tests for Safari"
+  task :testjava => [
+      "//java/client/test/org/openqa/selenium/safari:test:run"
+  ]
+
   desc "Run all SafariDriver tests"
   task :test => [
       "safari:testjs",
-      "//java/client/test/org/openqa/selenium/safari:test:run"
+      "safari:testjava"
   ]
 
   desc "Re-install the SafariDriver extension; OSX only"

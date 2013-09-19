@@ -37,6 +37,7 @@ import static org.junit.Assert.fail;
 import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
 import static org.openqa.selenium.testing.Ignore.Driver.IE;
 import static org.openqa.selenium.testing.Ignore.Driver.IPHONE;
+import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA_MOBILE;
 
@@ -81,7 +82,7 @@ public class ElementAttributeTest extends JUnit4TestBase {
     assertThat(body.getAttribute("style"), equalTo(""));
   }
 
-  @Ignore({OPERA, IPHONE, ANDROID})
+  @Ignore({OPERA, IPHONE, ANDROID, MARIONETTE})
   @Test
   public void testShouldReturnTheValueOfTheDisabledAttributeAsNullIfNotSet() {
     driver.get(pages.formPage);
@@ -126,7 +127,7 @@ public class ElementAttributeTest extends JUnit4TestBase {
     assertThat(disabledSubmitElement.isEnabled(), is(false));
   }
 
-  @Ignore(value = {IPHONE},
+  @Ignore(value = {IPHONE, MARIONETTE},
           reason = "sendKeys does not determine whether the element is disabled")
   @Test
   public void testShouldThrowExceptionIfSendingKeysToElementDisabledUsingRandomDisabledStrings() {
@@ -334,7 +335,7 @@ public class ElementAttributeTest extends JUnit4TestBase {
     assertEquals("hello world", element.getAttribute("value"));
   }
 
-  @Ignore({OPERA, IPHONE, ANDROID})
+  @Ignore({OPERA, IPHONE, ANDROID, MARIONETTE})
   @Test
   public void testShouldReturnNullForNonPresentBooleanAttributes() {
     driver.get(pages.booleanAttributes);
@@ -359,4 +360,41 @@ public class ElementAttributeTest extends JUnit4TestBase {
     WebElement element5 = driver.findElement(By.id("unwrappable"));
     assertEquals("true", element5.getAttribute("nowrap"));
   }
+
+  @Ignore({OPERA, IPHONE, ANDROID, MARIONETTE})
+  @Test
+  public void testMultipleAttributeShouldBeNullWhenNotSet() {
+    driver.get(pages.selectPage);
+    WebElement element = driver.findElement(By.id("selectWithoutMultiple"));
+    assertEquals(null, element.getAttribute("multiple"));
+  }
+
+  @Test
+  public void testMultipleAttributeShouldBeTrueWhenSet() {
+    driver.get(pages.selectPage);
+    WebElement element = driver.findElement(By.id("selectWithMultipleEqualsMultiple"));
+    assertEquals("true", element.getAttribute("multiple"));
+  }
+
+  @Test
+  public void testMultipleAttributeShouldBeTrueWhenSelectHasMultipleWithValueAsBlank() {
+    driver.get(pages.selectPage);
+    WebElement element = driver.findElement(By.id("selectWithEmptyStringMultiple"));
+    assertEquals("true", element.getAttribute("multiple"));
+  }
+
+  @Test
+  public void testMultipleAttributeShouldBeTrueWhenSelectHasMultipleWithoutAValue() {
+    driver.get(pages.selectPage);
+    WebElement element = driver.findElement(By.id("selectWithMultipleWithoutValue"));
+    assertEquals("true", element.getAttribute("multiple"));
+  }
+
+  @Test
+  public void testMultipleAttributeShouldBeTrueWhenSelectHasMultipleWithValueAsSomethingElse() {
+    driver.get(pages.selectPage);
+    WebElement element = driver.findElement(By.id("selectWithRandomMultipleValue"));
+    assertEquals("true", element.getAttribute("multiple"));
+  }
+
 }

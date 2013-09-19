@@ -26,6 +26,7 @@ import static org.openqa.selenium.testing.Ignore.Driver.ANDROID;
 import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
 import static org.openqa.selenium.testing.Ignore.Driver.IE;
 import static org.openqa.selenium.testing.Ignore.Driver.IPHONE;
+import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA;
 import static org.openqa.selenium.testing.Ignore.Driver.OPERA_MOBILE;
 import static org.openqa.selenium.TestWaiter.waitFor;
@@ -218,7 +219,7 @@ public class TextHandlingTest extends JUnit4TestBase {
     assertThat(seenText, equalTo(expectedText));
   }
 
-  @Ignore(value = {OPERA, ANDROID})
+  @Ignore(value = {OPERA, ANDROID, MARIONETTE})
   @Test
   public void testShouldBeAbleToEnterDatesAfterFillingInOtherValuesFirst() {
     driver.get(pages.formPage);
@@ -418,4 +419,14 @@ public class TextHandlingTest extends JUnit4TestBase {
     // That's the reason for the previous assert.
     assertEquals(expected, element.getText());
   }
+
+  @Test
+  @Ignore(reason = "Not all unicode whitespace characters are trimmed", issues = {6072})
+  public void testShouldTrimTextWithMultiByteWhitespaces() {
+    driver.get(pages.simpleTestPage);
+    String text = driver.findElement(By.id("trimmedSpace")).getText();
+
+    assertEquals("test", text);
+  }
+
 }
